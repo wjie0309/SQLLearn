@@ -139,3 +139,120 @@ SELECT product_id, product_name, product_type, sale_price, purchase_price, regis
 		ALTER table tableName ADD INDEX indexName(columnName)
 		```
 
+## 基础查询与排序
+
+### SELECT
+
+- 基本 SELECT 语法
+
+```SQL
+SELECT columns
+FROM table_name
+WHERE ...
+```
+
+-   星号（`*`）代表全部列的意思
+-   SQL中可以随意使用换行符，不影响语句执行, 但不可插入空行
+-   设定汉语别名时需要使用双引号 `"` 括起来
+-   在SELECT语句中使用DISTINCT可以删除重复行
+
+### 运算符
+
+#### 算术运算符
+
+简单的四则运算皆使用常用符号
+
+#### 比较运算符
+
+![](https://s1.vika.cn/space/2022/10/18/f6459873aa554296b9d19cb25a258654)
+
+#### 逻辑运算符
+
+- NOT
+- AND
+- OR
+
+逻辑运算符遵循四则运算的规则, 可以用括号来规定运算优先级.
+
+### 聚合查询
+
+#### 聚合函数
+
+SQL中用于汇总的函数叫做聚合函数, 以下五个是最常用的聚合函数:
+
+- SUM
+- AVG
+- MAX
+- MIN
+- COUNT: 计算表中的记录条数
+
+#### DISTINCT 进行删除的符合查询
+
+使用 DISTINCT 可以去除重复的数据, 比如想要计算不重复的 COUNT 数量, 可以配合 COUNT 和 DISTINCT 使用.
+
+#### 聚合查询规则
+
+-   COUNT 聚合函数运算结果与参数有关，`COUNT(*) / COUNT(1)` 得到包含 NULL 值的所有行，`COUNT(<列名>)` 得到不包含 NULL 值的所有行。
+-   聚合函数不处理包含 NULL 值的行，但是 `COUNT(*) `除外。
+
+### GROUP BY
+
+使用这个函数可以进行数据的分组汇总.
+
+GROUP BY 的使用位置为:
+
+```SQL
+SELECT purchase_price, COUNT(*)
+  FROM product
+ WHERE product_type = '衣服'
+ GROUP BY purchase_price;
+```
+
+- GROUP BY 不能使用别名, 因为在RDBMS系统中会先处理 GROUP BY 的语句操作.
+- 使用 GROUP BY 时, 可以使用 HAVING 来配合其进行限定条件分组, 使用方法类似 WHERE.
+  这里不使用 WHERE 是因为，WHERE子句只能指定记录行的条件，而不能用来指定组的条件.
+
+### ORDER BY
+
+ORDER BY 的使用格式为:
+
+```SQL
+SELECT <列名1>, <列名2>, <列名3>, ……
+  FROM <表名>
+ ORDER BY <排序基准列1> [ASC, DESC], <排序基准列2> [ASC, DESC], ……
+```
+
+其中排序格式为 ASC, DESC, 默认序列为 ASC.
+
+#### 别名的使用
+
+SQL 在使用 HAVING 子句时 SELECT 语句的执行顺序为：
+
+`FROM → WHERE → GROUP BY → SELECT → HAVING → ORDER BY`
+
+因此, ORDER BY 可以使用别名.
+
+#### NULL 情形
+
+在MySQL中, `NULL` 值被认为比任何 `NOT NULL` 值低, 因此, 当顺序为 ASC（升序）时,  `NULL` 值出现在第一位, 而当顺序为 DESC（降序）时, 则排序在最后.
+
+如果想要 NULL 位于不符合寻常情况下的队首或队尾时, 可以在排序时选取对象时乘以一个 -1.
+
+对于字符型的数据, 想要满足这种排序情况可以进行两重标准的排序.
+
+```SQL
+-- IS NULL
+SELECT * FROM user 
+ ORDER BY name IS NULL ASC,name ASC;
+ 
+-- ISNULL()
+SELECT * FROM user 
+ ORDER BY ISNULL(name) ASC,name ASC;
+```
+
+或者也可以通过 `COALESCE` 来将空值变为指定值.
+
+```SQL
+SELECT * FROM user 
+ ORDER BY COALESCE(name, 'zzzzz') ASC;
+```
