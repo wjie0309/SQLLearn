@@ -256,3 +256,78 @@ SELECT * FROM user
 SELECT * FROM user 
  ORDER BY COALESCE(name, 'zzzzz') ASC;
 ```
+
+## 集合运算
+
+### 表的加减法
+
+#### UNION
+
+UNION 可以对两个表做集合并集运算, 即在合并的同时, 去除掉重复的数据部分.
+
+```SQL
+SELECT ...
+	FROM ...
+
+UNION
+
+SELECT ...
+	FROM ...
+```
+
+如果是同一个表的查询, 可以通过使用 OR 对 WHERE 条件进行修饰来达到和 UNION 一样的效果.
+
+- 如果需要保留重复行的数据, 就可以使用 `UNION ALL` 来进行合并.
+
+- 在 SELECT 时选取了不同 COLOUMNS 的情况下, UNION 会进行隐式合并, 即将两个数据中不一样的 COLUMNS 合并显示.
+
+#### 表的减法
+
+要实现两个集合之间差集和补集的效果, 可以使用 EXCEPT 以及 NOT IN 函数. 
+
+通过 NOT IN 实现集合之间的对称差 (独属于集合 A 的部分), 在此基础上, 还可以通过求得两个集合的对称差, 再使用 NOT IN 实现得到两个集合的交集的效果 INTERSECT.
+
+### JOIN
+
+连结(JOIN)就是使用某种关联条件(一般是使用相等判断谓词"="), 将其他表中的列添加过来, 进行“添加列”的集合运算.
+
+#### INNER JOIN
+
+```SQL
+SELECT SP.shop_id
+       ,SP.shop_name
+       ,SP.product_id
+       ,P.product_name
+       ,P.product_type
+       ,P.sale_price
+       ,SP.quantity
+  FROM shopproduct AS SP
+ INNER JOIN product AS P
+    ON SP.product_id = P.product_id;
+```
+
+- 语句中包含多个表
+- 设定 ON 语句来确立连接条件
+- 如果还会使用 WHERE 限定条件, 那么需要在 ON 之后
+- `GROUP BY` 语句可以配合内连接来使用. 使用顺序可前可后. 如果是两个不同的表, 那么就需要先 `JOIN` 后再进行 `GROUP BY`.
+
+#### OUTER JOIN
+
+内连结会丢弃两张表中不满足 ON 条件的行,和内连结相对的就是外连结. 外连结会根据外连结的种类有选择地保留无法匹配到的行. 可以通过设定左连接, 右连接来确定连接方式.
+
+e.g. 
+
+```SQL
+SELECT SP.shop_id
+       ,SP.shop_name
+       ,SP.product_id
+       ,P.product_name
+       ,P.sale_price
+  FROM product AS P
+  LEFT OUTER JOIN shopproduct AS SP
+    ON SP.product_id = P.product_id;
+```
+
+使用 LEFT 时 FROM 子句中写在左侧的表是主表,使用 RIGHT 时右侧的表是主表.
+
+
