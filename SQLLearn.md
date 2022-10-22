@@ -330,4 +330,78 @@ SELECT SP.shop_id
 
 使用 LEFT 时 FROM 子句中写在左侧的表是主表,使用 RIGHT 时右侧的表是主表.
 
+## SQL 高级处理
 
+### 窗口函数
+
+#### 窗口函数定义
+
+`OLAP` 函数, 即为窗口函数, 意思是对数据库做实时分析处理.
+
+```SQL
+<窗口函数> OVER ([ PARTITION BY <列名> ]
+                     [ ORDER BY <排序用列名> ])  
+```
+
+其中 `PARTITION BY` 指定了窗口对象范围. `ORDER BY` 指定排序参照的对象, 排序方式等参数.
+
+#### 常见的窗口函数
+
+- RANK
+- DENSE_RANK
+- ROW_NUMBER
+
+这三者的区别为, 当出现并列排列的items时, `RANK` 会并列排列, 然后下一位的排名分别会根据前边并列排名的个数按序号增加, 不考虑并列排名的个数只考虑 1, 2, 3... 的序列排序, 以及并列排名的item仍然按顺序进行排序,
+
+聚合函数也可以用窗口函数的使用语法进行使用.
+
+e.g.
+
+```SQL
+SELECT  product_id
+       ,product_name
+       ,sale_price
+       ,SUM(sale_price) OVER (ORDER BY product_id) AS current_sum
+       ,AVG(sale_price) OVER (ORDER BY product_id) AS current_avg  
+  FROM product;  
+```
+
+#### 移动平均
+
+```SQL
+<窗口函数> OVER (ORDER BY <排序用列名>
+                 ROWS n PRECEDING )  
+                 
+<窗口函数> OVER (ORDER BY <排序用列名>
+                 ROWS BETWEEN n PRECEDING AND n FOLLOWING)
+```
+
+使用这种语法, 可以指定聚合函数的汇总范围.
+
+- `PERCEDING` 指定为 截至到之前 n 行, 包括本行.
+- `FOLLOWING` 指定为 截至到之后 n 行, 包括本行.
+
+#### 注意事项
+
+- 窗口函数只能在 `SELECT` 语句中使用
+- `ORDER BY` 子句不会影响排序, 只会影响窗口函数计算排序的方式.
+
+### ROLLUP
+
+在使用了 `GROUP BY` 之后, 可以使用 `ROLLUP` 可以计算不同范围的合计与小计.
+
+e.g.
+
+```SQL
+SELECT  product_type
+       ,regist_date
+       ,SUM(sale_price) AS sum_price
+  FROM product
+ GROUP BY product_type, regist_date WITH ROLLUP;  
+```
+
+就可以得到结果:
+
+![](https://s1.vika.cn/space/2022/10/22/2bd55f17d1dd4e4185a6ea464f9b6103)
+
+### 储存
